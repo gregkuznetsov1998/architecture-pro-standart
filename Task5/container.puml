@@ -1,0 +1,36 @@
+@startuml Container_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+title C4 диаграмма контейнеров
+Person(client, "Клиент")
+
+System_Boundary(web, "Веб-системы") {
+    Container(site_ui, "Сайт: UI", "React.js")
+    Container(ib_ui, "Интернет-банк: UI", "React.js")
+    Container(gateway, "API Gateway", "Kong")
+}
+
+System_Boundary(processing, "Обработка заявок") {
+    Container(scoring_svc, "Scoring Service", "Python Flask", "Оценка кредитоспособности")
+    Container(credit_workflow, "Credit Workflow", "Camunda", "Управление процессами")
+    Container(offer_cache, "Offer Cache", "Redis", "Кэш предодобренных предложений")
+}
+
+System_Boundary(data, "Данные") {
+    ContainerDb(bki_gateway, "БКИ Gateway", "REST Proxy")
+    ContainerDb(abs_db, "АБС Oracle", "Oracle 19c")
+    ContainerDb(conv_db, "Конвейер DB", "PostgreSQL")
+}
+
+Rel(client, site_ui, "Подает заявку")
+Rel(client, ib_ui, "Выбирает предложение")
+Rel(site_ui, gateway, "Отправляет данные")
+Rel(ib_ui, gateway, "Отправляет данные")
+Rel(gateway, scoring_svc, "Оценка нового клиента")
+Rel(gateway, offer_cache, "Проверка кэша")
+Rel(scoring_svc, bki_gateway, "Запрос истории")
+Rel(gateway, credit_workflow, "Создает заявку (Kafka)")
+Rel(credit_workflow, conv_db, "Сохраняет статус")
+Rel(credit_workflow, abs_db, "Синхронизация (раз в сутки)")
+Rel(credit_workflow, telecom, "SMS-уведомления")
+
+@enduml

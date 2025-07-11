@@ -1,0 +1,21 @@
+@startuml Context_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+title C4 диаграмма контекста
+Person(operator, "Оператор кол-центра", "Консультирует клиентов")
+Person(partner_operator, "Оператор партнерского КЦ", "Консультирует клиентов")
+
+System_Boundary(boundary, "Банк Стандарт") {
+    System(cc_system, "Система кол-центра", "Java, PostgreSQL")
+    System(abs, "АБС", "Oracle, PL/SQL")
+    System(sftp_server, "SFTP-сервер", "FileZilla Server")
+}
+
+System_Ext(partner_system, "Система партнерского КЦ", "Внешняя система")
+
+Rel(operator, cc_system, "Запрашивает ставки")
+Rel(partner_operator, partner_system, "Запрашивает ставки")
+Rel(cc_system, abs, "Получает ставки через API")
+Rel(abs, sftp_server, "Генерирует файл ставок (каждые 15 мин)")
+Rel(sftp_server, partner_system, "Загрузка файла по SFTP")
+
+@enduml

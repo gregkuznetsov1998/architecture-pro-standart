@@ -1,0 +1,34 @@
+@startuml Container_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+title C4 диаграмма контейнеров
+Person(cliente_exist, "Существующий клиент")
+
+System_Boundary(internet_bank_boundary, "Интернет-банк") {
+    Container(web_ui, "Web UI", "React.js", "Интерфейс депозитов")
+    Container(api_gateway, "API Gateway", "Ocelot", "Маршрутизация запросов")
+    Container(deposit_service, "Deposit Service", ".NET 6", "Обработка заявок")
+    ContainerDb(sql_db, "MS SQL", "Microsoft SQL Server", "Хранение данных заявок")
+}
+
+System_Boundary(abs_boundary, "АБС") {
+    Container(abs_core, "Ядро АБС", "PL/SQL", "Бизнес-логика")
+    ContainerDb(oracle_db, "Oracle DB", "Oracle 19c", "Основное хранилище данных")
+    Container(rate_module, "Модуль ставок", "PL/SQL", "Управление депозитными ставками")
+}
+
+Container(kafka, "Apache Kafka", "Брокер сообщений")
+Container(sms_service, "SMS Service", "Java", "Управление уведомлениями")
+
+Rel(cliente_exist, web_ui, "Взаимодействует с UI")
+Rel(web_ui, api_gateway, "Отправляет запросы")
+Rel(api_gateway, deposit_service, "Обрабатывает заявки")
+Rel(deposit_service, sql_db, "Сохраняет данные")
+Rel(deposit_service, kafka, "Отправляет заявку в очередь")
+Rel(kafka, abs_core, "Принимает заявки")
+Rel(abs_core, oracle_db, "Чтение/запись данных")
+Rel(abs_core, rate_module, "Расчет ставок")
+Rel(rate_module, oracle_db, "Хранит ставки")
+Rel(abs_core, sms_service, "Триггер уведомления")
+Rel(sms_service, telecom, "Интеграция с оператором")
+
+@enduml

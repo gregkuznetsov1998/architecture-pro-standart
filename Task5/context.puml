@@ -1,0 +1,28 @@
+@startuml Context_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+title C4 диаграмма контекста
+Person(new_client, "Новый клиент", "Подает заявку через сайт")
+Person(exist_client, "Существующий клиент", "Подает заявку через интернет-банк")
+Person(manager, "Менеджер отделения", "Завершает оформление")
+
+System_Boundary(boundary, "Банк Стандарт") {
+    System(site, "Сайт", "PHP, React.js")
+    System(internet_bank, "Интернет-банк", ".NET 6, MS SQL")
+    System(scoring, "Система скоринга", "Python, Flask")
+    System(credit_conv, "Кредитный конвейер", "Camunda, Java")
+    System(abs, "АБС", "Oracle, PL/SQL")
+}
+
+System_Ext(bki, "БКИ", "Внешний API")
+System_Ext(telecom, "Телеком-оператор", "SMS-уведомления")
+
+Rel(new_client, site, "Подает заявку с паспортными данными")
+Rel(exist_client, internet_bank, "Выбирает предодобренное предложение")
+Rel(site, scoring, "Запрос оценки (REST)")
+Rel(internet_bank, credit_conv, "Отправляет заявку (Kafka)")
+Rel(scoring, bki, "Проверка кредитной истории")
+Rel(credit_conv, abs, "Синхронизация данных (раз в сутки)")
+Rel(credit_conv, telecom, "Инициирует SMS-уведомления")
+Rel(manager, abs, "Работает с заявкой")
+
+@enduml
