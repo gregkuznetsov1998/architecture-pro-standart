@@ -1,0 +1,27 @@
+@startuml Container_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+title C4 диаграмма контейнеров
+System_Boundary(abs_boundary, "АБС") {
+    Component(rate_service, "Сервис ставок", "PL/SQL", "Управление ставками")
+    Component(file_generator, "Генератор файлов", "Java", "Формирование CSV/XML")
+    Component(scheduler, "Планировщик", "Oracle Scheduler", "Запуск каждые 15 мин")
+    ComponentDb(oracle_db, "Oracle DB", "Хранилище ставок")
+}
+
+System_Boundary(cc_boundary, "Система кол-центра") {
+    Component(rate_api, "Rate API", "Java", "Предоставление ставок операторам")
+    ComponentDb(postgres_db, "PostgreSQL", "Кэш ставок")
+}
+
+Container(sftp_server, "SFTP-сервер", "Linux, OpenSSH")
+System_Ext(partner_system, "Система партнерского КЦ")
+
+Rel(rate_api, rate_service, "REST-вызов", "HTTP")
+Rel(rate_service, oracle_db, "Чтение/запись")
+Rel(scheduler, file_generator, "Триггер генерации")
+Rel(file_generator, rate_service, "Получение данных")
+Rel(file_generator, sftp_server, "Загрузка файла (шифрованный)")
+Rel(sftp_server, partner_system, "Доступ по SFTP")
+Rel(rate_api, postgres_db, "Кэширование ставок")
+
+@enduml

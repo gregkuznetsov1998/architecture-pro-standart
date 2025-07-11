@@ -1,0 +1,29 @@
+@startuml Context_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+title C4 диаграмма контекста
+Person(cliente_new, "Новый клиент", "Подает заявку через сайт")
+Person(cliente_exist, "Существующий клиент", "Подает заявку через интернет-банк")
+Person(operator, "Оператор кол-центра", "Обрабатывает заявки")
+Person(manager, "Менеджер бэк-офиса", "Подтверждает условия")
+
+System_Boundary(boundary, "Система открытия депозитов") {
+    System(site, "Сайт", "PHP, React.js")
+    System(internet_bank, "Интернет-банк", "ASP.NET MVC, MS SQL")
+    System(cc_system, "Система кол-центра", "Java, PostgreSQL")
+    System(abs, "АБС", "Oracle, PL/SQL")
+    System(sms_gw, "СМС-шлюз", "Интеграция с телекомом")
+}
+
+System_Ext(bki, "БКИ", "Внешний API")
+System_Ext(telecom, "Телеком-оператор", "Отправка SMS")
+
+Rel(cliente_new, site, "Оставляет заявку")
+Rel(cliente_exist, internet_bank, "Подает заявку с SMS-подтверждением")
+Rel(site, cc_system, "Передает заявку (HTTPS/TLS)")
+Rel(internet_bank, abs, "Отправляет данные через Kafka", "Async")
+Rel(operator, cc_system, "Работает с заявкой")
+Rel(manager, abs, "Подтверждает условия депозита")
+Rel(abs, sms_gw, "Инициирует уведомление")
+Rel(sms_gw, telecom, "Отправляет SMS")
+Rel(cc_system, abs, "Синхронизирует данные")
+Rel(internet_bank, bki, "Запрос данных (опционально)")
